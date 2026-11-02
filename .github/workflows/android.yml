@@ -1,4 +1,3 @@
-
 name: Android CI
 
 on:
@@ -23,6 +22,13 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Apply Z theme
+        run: |
+          R=app_pojavlauncher/src/main/res
+          mkdir -p $R/drawable $R/layout
+          cp -f bg_z_liquid.xml ic_z_*.xml z_*.xml $R/drawable/
+          cp -f fragment_launcher.xml $R/layout/fragment_launcher.xml
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -39,36 +45,6 @@ jobs:
           branch: buildjre8
           name: jre8-pojav
 
-      # - name: Get JRE17
-      #   uses: dawidd6/action-download-artifact@v9
-      #   with:
-      #     workflow: build.yml
-      #     path: app_pojavlauncher/src/main/assets/components/jre-new
-      #     workflow_conclusion: completed
-      #     repo: AngelAuraMC/angelauramc-openjdk-build
-      #     branch: buildjre17-21
-      #     name: jre17-pojav
-      #
-      # - name: Get JRE21
-      #   uses: dawidd6/action-download-artifact@v9
-      #   with:
-      #     workflow: build.yml
-      #     path: app_pojavlauncher/src/main/assets/components/jre-21
-      #     workflow_conclusion: completed
-      #     repo: AngelAuraMC/angelauramc-openjdk-build
-      #     branch: buildjre17-21
-      #     name: jre21-pojav
-      #
-      # - name: Get JRE25
-      #   uses: dawidd6/action-download-artifact@v9
-      #   with:
-      #     workflow: build.yml
-      #     path: app_pojavlauncher/src/main/assets/components/jre-25
-      #     workflow_conclusion: completed
-      #     repo: FCL-Team/Android-OpenJDK-Build
-      #     branch: Build_JRE_25
-      #     name: jre25-multiarch
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           validate-wrappers: false
@@ -79,37 +55,13 @@ jobs:
           ./scripts/languagelist_updater.sh
           mkdir out
 
-      - name: Build Release .apk
-        if: false
-        run: |
-          # Build the launcher
-          gradle :app_pojavlauncher:assembleRelease
-          mv app_pojavlauncher/build/outputs/apk/release/app_pojavlauncher-release.apk out/app-release.apk
-
-      - name: Gen md5sums release
-        if: false
-        run: |
-          md5sum out/app-release.apk > out/app-release.md5
-
       - name: Build Debug .apk
         run: |
-          # Build the launcher
           gradle :app_pojavlauncher:assembleDebug
           mv app_pojavlauncher/build/outputs/apk/debug/app_pojavlauncher-debug.apk out/app-debug.apk
-
-      - name: Gen md5sums
-        run: |
-          md5sum out/app-debug.apk > out/app-debug.md5
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug (recommended)
-          path: out/app-debug.*
-
-      - name: Upload release APK
-        if: false
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: out/app-release.*
+          path: out/app-debug.apk
